@@ -1,0 +1,40 @@
+version: '2'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  cassandra:
+    image: 'bitnami/cassandra:latest'
+    ports:
+      - 7000:7000
+      - 9042:9042
+    environment:
+      - CASSANDRA_PASSWORD=password123
+      - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+    volumes:
+      - ./public/system/cassandra:/bitnami/cassandra
+    networks:
+      - app-tier
+  myapp:
+    build: .
+    ports:
+     - 5000:5000
+    volumes:
+     - .:/code
+    networks:
+      - app-tier
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./public/system/redis:/data
+  mongodb:
+    image: sameersbn/mongodb:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - ./public/system/mongodb:/var/lib/mongodb
+    restart: always
