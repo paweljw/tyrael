@@ -3,6 +3,10 @@
 module Tyrael
   class Mongodb
     def self.call
+      new.call
+    end
+
+    def call
       'MongoDB'
     end
   end
