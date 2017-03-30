@@ -13,13 +13,13 @@ class TyraelApp
     req = Rack::Request.new(env)
     case req.path_info
     when /mongodb/
-      [200, {"Content-Type" => "text/html"}, [Tyrael::Mongodb.call]]
+      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Mongodb.call]]
     when /cassandra/
-      [500, {"Content-Type" => "text/html"}, [Tyrael::Cassandra.call]]
+      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Cassandra.call]]
     when /redis/
-      [500, {"Content-Type" => "text/html"}, [Tyrael::Redis.call]]
+      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Redis.call]]
     else
-      [404, {"Content-Type" => "text/html"}, ["I'm Lost!"]]
+      [404, { 'Content-Type' => 'text/plain' }, ["I'm Lost!"]]
     end
   end
 end
