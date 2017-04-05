@@ -14,6 +14,8 @@ class TyraelApp
     case req.path_info
     when /mongodb/
       [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Mongodb.call]]
+    when /keyspace/
+      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Cassandra.new.ensure_keyspace_exists]]
     when /cassandra/
       [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Cassandra.call]]
     when /redis/
