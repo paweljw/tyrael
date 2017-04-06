@@ -7,17 +7,29 @@ module Tyrael
     end
 
     def call
-      count_future = session.execute_async('SELECT COUNT (*) FROM tyrael;')
-      count_future.on_success do |rows|
-        puts rows.inspect
+      if placements_count > 10
+        empty_placements
+      else
+        insert_placement
       end
-      count_future.join
+      placements_count.to_s
     end
 
     def ensure_keyspace_exists
-      cluster.connect.execute('CREATE KEYSPACE IF NOT EXISTS tyrael ' \
+      session(nil).execute('CREATE KEYSPACE IF NOT EXISTS tyrael ' \
         "WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3}")
+      ensure_table_exists
       'OK'
+    end
+
+    def ensure_table_exists
+      cql = <<CASSIE
+      CREATE TABLE IF NOT EXISTS placements (
+        url text PRIMARY KEY,
+        visited_at timestamp,
+      );
+CASSIE
+      session(nil).execute(cql)
     end
 
     private
@@ -27,8 +39,22 @@ module Tyrael
                                          password: 'password123', compression: :snappy)
     end
 
-    def session
-      @session ||= cluster.connect('tyrael')
+    def session(keyspace)
+      @session ||= {}
+      @session[keyspace] ||= cluster.connect('tyrael')
+    end
+
+    def placements_count
+      session('tyrael').execute('SELECT COUNT (*) FROM placements;').first['count']
+    end
+
+    def empty_placements
+      session('tyrael').execute('TRUNCATE placements;')
+    end
+
+    def insert_placement
+      session('tyrael').execute('INSERT INTO placements (url, visited_at) ' \
+        "VALUES ('#{SecureRandom.uuid})', toTimestamp(now()));")
     end
   end
 end
