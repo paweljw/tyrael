@@ -10,7 +10,7 @@ module Tyrael
 
     def call
       insert
-      collection.drop if collection_count > 10_000
+      collection.drop if collection_count > APP_MAX
       collection_count.to_s
     end
 

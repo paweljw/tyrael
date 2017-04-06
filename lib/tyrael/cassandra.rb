@@ -7,7 +7,7 @@ module Tyrael
     end
 
     def call
-      if placements_count > 10
+      if placements_count > APP_MAX
         empty_placements
       else
         insert_placement

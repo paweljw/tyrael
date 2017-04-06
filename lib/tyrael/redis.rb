@@ -15,7 +15,7 @@ module Tyrael
     attr_reader :redis
 
     def push_or_pop
-      if range_size < 10_000
+      if range_size < APP_MAX
         redis.rpush(:test_key, 'val')
       else
         redis.lpop(:test_key)

@@ -4,26 +4,32 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.require(:default)
 
+APP_MAX = 10_000
+
 require_relative './lib/tyrael/cassandra'
 require_relative './lib/tyrael/mongodb'
 require_relative './lib/tyrael/redis'
 
-class TyraelApp
-  def call(env)
-    req = Rack::Request.new(env)
-    case req.path_info
-    when /mongodb/
-      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Mongodb.call]]
-    when /keyspace/
-      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Cassandra.new.ensure_keyspace_exists]]
-    when /cassandra/
-      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Cassandra.call]]
-    when /redis/
-      [200, { 'Content-Type' => 'text/plain' }, [Tyrael::Redis.call]]
-    else
-      [404, { 'Content-Type' => 'text/plain' }, ["I'm Lost!"]]
-    end
+class TyraelApp < Rack::App
+  error StandardError, NoMethodError do |ex|
+    { error: ex.message }
+  end
+
+  get 'keyspace' do
+    Tyrael::Cassandra.new.ensure_keyspace_exists
+  end
+
+  get 'cassandra' do
+    Tyrael::Cassandra.call
+  end
+
+  get 'mongodb' do
+    Tyrael::Mongodb.call
+  end
+
+  get '/redis' do
+    Tyrael::Redis.call
   end
 end
 
-run TyraelApp.new
+run TyraelApp
